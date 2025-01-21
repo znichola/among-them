@@ -2,19 +2,29 @@ const std = @import("std");
 const rl = @import("raylib");
 
 pub const GameState = struct {
-    player_count: u4,
-    all_players: [std.math.maxInt(u4)]PlayerState,
+    initial_player_count: u4,
     players: []PlayerState,
+    all_players: [std.math.maxInt(u4)]PlayerState,
 
     pub fn init(player_count: u4) GameState {
         var gs = GameState{
-            .player_count = player_count,
+            .initial_player_count = player_count,
             .all_players = undefined,
+            .players = undefined,
         };
-        gs.players = gs.all_players[0..player_count];
-        for (gs.players, 0..) |*c, i| {
+
+        std.debug.print("initial player count {}\n", .{player_count});
+
+        for (gs.all_players[0..player_count], 0..) |*c, i| {
             c.* = PlayerState.init(@intCast(i));
+            std.debug.print("JAJAJ {}\n", .{c.id});
         }
+        gs.players = gs.all_players[0..player_count];
+        // gs.players = gs.all_players[0..player_count];
+        // for (gs.players, 0..) |*c, i| {
+        //     c.* = PlayerState.init(@intCast(i));
+        //     std.debug.print("JAJAJ {}\n", .{c.id});
+        // }
         return gs;
     }
 
@@ -26,11 +36,36 @@ pub const GameState = struct {
     }
 };
 
-test "GameState should init" {
+test "GameState should init with one player" {
     const gs = GameState.init(1);
-    std.debug.print("testing print", .{});
-    std.testing.expect(gs.player_count == 1);
-    std.testing.expect(gs.players[0].id == 1);
+    // std.debug.print("\n players count: {any}\n", .{gs.initial_player_count});
+    // for (gs.all_players) |p| std.debug.print("{}\n", .{p});
+    // std.debug.print("\n and just players: {any}\n", .{gs.players.len});
+    // for (gs.players) |p| std.debug.print("{}\n", .{p});
+
+    // std.debug.print("\n and player id 1 {any}\n", .{gs.players[0]});
+
+    try std.testing.expectEqual(1, gs.initial_player_count);
+    try std.testing.expectEqual(0, gs.players[0].id);
+}
+
+test "GameState init with 5 players" {
+    const gs = GameState.init(5);
+
+    for (gs.players, 0..) |p, i| {
+        try std.testing.expectEqual(i, p.id);
+    }
+}
+
+test "GameState init with max players" {
+    const gs = GameState.init(std.math.maxInt(u4));
+    // gs.players = gs.all_players[0..gs.initial_player_count];
+
+    std.debug.print("\nmax players: {}\n\n", .{gs.players.len});
+    for (gs.players, 0..) |p, i| {
+        std.debug.print("p id: {} i : {}\n", .{ p.id, i });
+        // try std.testing.expectEqual(i, p.id);
+    }
 }
 
 pub const PlayerState = struct {
