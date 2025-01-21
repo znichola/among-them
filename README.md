@@ -1,6 +1,6 @@
 # Among them
 
-An among us clone, made my me a probably a bit shitty.
+An among us clone, made my me, and probably a bit shitty.
 
 ## TODO
 
