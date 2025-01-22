@@ -17,7 +17,7 @@ pub const GameState = struct {
 
         for (gs.all_players[0..player_count], 0..) |*c, i| {
             c.* = PlayerState.init(@intCast(i));
-            std.debug.print("JAJAJ {}\n", .{c.id});
+            // std.debug.print("JAJAJ {}\n", .{c.id});
         }
         gs.players = gs.all_players[0..player_count];
         // gs.players = gs.all_players[0..player_count];
@@ -27,6 +27,11 @@ pub const GameState = struct {
         // }
         return gs;
     }
+
+    // pub fn setPlayers(self: *Self) *GameState {
+    //     self.players = self.all_players[0..self.initial_player_count];
+    //     return self;
+    // }
 
     pub fn toScreenX(self: GameState, player_id: u4) i32 {
         return @as(i32, @intFromFloat(self.players[player_id].pos.x));
@@ -60,7 +65,7 @@ test "GameState init with 5 players" {
 test "GameState init with max players" {
     const gs = GameState.init(std.math.maxInt(u4));
     // gs.players = gs.all_players[0..gs.initial_player_count];
-
+    // std.debug.print("JAJA", .{});
     std.debug.print("\nmax players: {}\n\n", .{gs.players.len});
     for (gs.players, 0..) |p, i| {
         std.debug.print("p id: {} i : {}\n", .{ p.id, i });
