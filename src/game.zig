@@ -2,75 +2,91 @@ const std = @import("std");
 const rl = @import("raylib");
 
 pub const GameState = struct {
-    initial_player_count: u4,
-    players: []PlayerState,
-    all_players: [std.math.maxInt(u4)]PlayerState,
+    players: [std.math.maxInt(u4)]PlayerState,
+    player_count: u4,
+    max_players: u4,
+    const Self = @This();
 
-    pub fn init(player_count: u4) GameState {
-        var gs = GameState{
-            .initial_player_count = player_count,
-            .all_players = undefined,
+    pub fn init() Self {
+        return Self{
             .players = undefined,
+            .player_count = 0,
+            .max_players = comptime std.math.maxInt(u4),
         };
-
-        std.debug.print("initial player count {}\n", .{player_count});
-
-        for (gs.all_players[0..player_count], 0..) |*c, i| {
-            c.* = PlayerState.init(@intCast(i));
-            // std.debug.print("JAJAJ {}\n", .{c.id});
-        }
-        gs.players = gs.all_players[0..player_count];
-        // gs.players = gs.all_players[0..player_count];
-        // for (gs.players, 0..) |*c, i| {
-        //     c.* = PlayerState.init(@intCast(i));
-        //     std.debug.print("JAJAJ {}\n", .{c.id});
-        // }
-        return gs;
     }
 
-    // pub fn setPlayers(self: *Self) *GameState {
-    //     self.players = self.all_players[0..self.initial_player_count];
-    //     return self;
-    // }
+    pub fn addPlayer(self: Self) Self {
+        var copy = self;
+        if (self.player_count < self.max_players) {
+            copy.player_count += 1;
+            copy.players[self.player_count] = PlayerState.init(copy.player_count);
+        }
+        return copy;
+    }
 
-    pub fn toScreenX(self: GameState, player_id: u4) i32 {
+    pub fn map(self: Self, f: *const fn (p: PlayerState) PlayerState) Self {
+        var copy = self;
+        for (0..copy.player_count) |i| {
+            copy.players[i] = f(copy.players[i]);
+        }
+        return copy;
+    }
+
+    pub fn toScreenX(self: Self, player_id: u4) i32 {
         return @as(i32, @intFromFloat(self.players[player_id].pos.x));
     }
-    pub fn toScreenY(self: GameState, player_id: u4) i32 {
+    pub fn toScreenY(self: Self, player_id: u4) i32 {
         return @as(i32, @intFromFloat(self.players[player_id].pos.y));
     }
 };
 
-test "GameState should init with one player" {
-    const gs = GameState.init(1);
-    // std.debug.print("\n players count: {any}\n", .{gs.initial_player_count});
-    // for (gs.all_players) |p| std.debug.print("{}\n", .{p});
-    // std.debug.print("\n and just players: {any}\n", .{gs.players.len});
-    // for (gs.players) |p| std.debug.print("{}\n", .{p});
+test "initialise and add players" {
+    const gs = GameState.init();
+    const gs2 = gs.addPlayer();
+    const gs3 = gs2.addPlayer();
 
-    // std.debug.print("\n and player id 1 {any}\n", .{gs.players[0]});
-
-    try std.testing.expectEqual(1, gs.initial_player_count);
-    try std.testing.expectEqual(0, gs.players[0].id);
+    try std.testing.expectEqual(2, gs3.player_count);
 }
 
 test "GameState init with 5 players" {
-    const gs = GameState.init(5);
+    const gs = GameState.init().addPlayer().addPlayer().addPlayer().addPlayer().addPlayer();
 
-    for (gs.players, 0..) |p, i| {
-        try std.testing.expectEqual(i, p.id);
+    var i: u4 = 0;
+    while (i < gs.player_count) {
+        try std.testing.expectEqual(i + 1, gs.players[i].id);
+        i += 1;
     }
 }
 
 test "GameState init with max players" {
-    const gs = GameState.init(std.math.maxInt(u4));
-    // gs.players = gs.all_players[0..gs.initial_player_count];
-    // std.debug.print("JAJA", .{});
-    std.debug.print("\nmax players: {}\n\n", .{gs.players.len});
-    for (gs.players, 0..) |p, i| {
-        std.debug.print("p id: {} i : {}\n", .{ p.id, i });
-        // try std.testing.expectEqual(i, p.id);
+    var gs = GameState.init();
+    for (0..gs.max_players) |_| {
+        gs = gs.addPlayer();
     }
+    // std.debug.print("\nmax players: {}\n\n", .{gs.players.len});
+    try std.testing.expectEqual(gs.max_players, gs.player_count);
+    for (0..gs.player_count) |i| {
+        // std.debug.print("p id: {} i : {}\n", .{ gs.players[i], i });
+        try std.testing.expectEqual(i + 1, gs.players[i].id);
+    }
+}
+
+test "Adding too many players" {
+    var gs = GameState.init();
+    for (0..20) |_| {
+        gs = gs.addPlayer();
+    }
+    try std.testing.expectEqual(gs.max_players, gs.player_count);
+}
+
+test "testing map" {
+    const gs = GameState.init().addPlayer().addPlayer().map(struct {
+        fn func(p: PlayerState) PlayerState {
+            // std.debug.print("printing from map {}\n", .{p.id});
+            return p;
+        }
+    }.func);
+    _ = gs;
 }
 
 pub const PlayerState = struct {
@@ -79,6 +95,16 @@ pub const PlayerState = struct {
     pos: rl.Vector2,
 
     pub fn init(id: u4) PlayerState {
-        return PlayerState{ .id = id, .facing = 0.0, .pos = rl.Vector2.init(0, 0) };
+        return PlayerState{
+            .id = id,
+            .facing = 0.0,
+            .pos = rl.Vector2.init(0, 0),
+        };
     }
 };
+
+// gs.players = gs.all_players[0..player_count];
+// for (gs.players, 0..) |*c, i| {
+//     c.* = PlayerState.init(@intCast(i));
+//     std.debug.print("JAJAJ {}\n", .{c.id});
+// }

@@ -5,7 +5,7 @@ const GameState = @import("game.zig").GameState;
 pub fn main() anyerror!void {
     //Game Variables (MODLE)
     //--------------------------------------------------------------------------------------
-    var gameState = GameState.init(0);
+    var gameState = GameState.init();
 
     //-end MODLE----------------------------------------------------------------------------
 
