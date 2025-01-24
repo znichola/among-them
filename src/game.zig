@@ -33,10 +33,10 @@ pub const GameState = struct {
     }
 
     pub fn toScreenX(self: Self, player_id: u4) i32 {
-        return @as(i32, @intFromFloat(self.players[player_id].pos.x));
+        return @as(i32, @intFromFloat(self.players[player_id - 1].pos.x));
     }
     pub fn toScreenY(self: Self, player_id: u4) i32 {
-        return @as(i32, @intFromFloat(self.players[player_id].pos.y));
+        return @as(i32, @intFromFloat(self.players[player_id - 1].pos.y));
     }
 };
 
@@ -93,12 +93,14 @@ pub const PlayerState = struct {
     id: u4,
     facing: f32,
     pos: rl.Vector2,
+    color: rl.Color,
 
     pub fn init(id: u4) PlayerState {
         return PlayerState{
             .id = id,
             .facing = 0.0,
             .pos = rl.Vector2.init(0, 0),
+            .color = rl.Color.red,
         };
     }
 };

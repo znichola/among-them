@@ -6,6 +6,9 @@ pub fn main() anyerror!void {
     //Game Variables (MODLE)
     //--------------------------------------------------------------------------------------
     var gameState = GameState.init();
+    gameState = gameState.addPlayer();
+    gameState = gameState.addPlayer();
+    gameState.players[1].color = rl.Color.blue;
 
     //-end MODLE----------------------------------------------------------------------------
 
@@ -25,13 +28,8 @@ pub fn main() anyerror!void {
         // (Update)
         //----------------------------------------------------------------------------------
 
-        const p1InputVec = getInputVectorPlayer1();
-        // gameState.pos = gameState.pos.add(p1InputVec);
-
-        _ = p1InputVec;
-
-        // if (rl.isKeyPressed(rl.KeyboardKey.key_up)) options.dt.dtUp();
-        // if (rl.isKeyPressed(rl.KeyboardKey.key_down)) options.dt.dtDown();/
+        gameState.players[0].pos = gameState.players[0].pos.add(getInputVectorPlayer1());
+        gameState.players[1].pos = gameState.players[1].pos.add(getInputVectorPlayer2());
 
         // Draw (VIEW)
         //----------------------------------------------------------------------------------
@@ -41,7 +39,28 @@ pub fn main() anyerror!void {
         rl.clearBackground(rl.Color.white);
         rl.drawFPS(10, 10);
 
-        rl.drawCircle(gameState.toScreenX(1), gameState.toScreenY(1), 4, rl.Color.red);
+        const players = gameState.players[0..gameState.player_count];
+        for (players) |p| {
+            rl.drawCircle(
+                gameState.toScreenX(p.id),
+                gameState.toScreenY(p.id),
+                6,
+                p.color,
+            );
+            // const facing_point = p.pos.add(
+            //     rl.Vector2.init(0, 10).rotate(p.facing),
+            // );
+            const facing_point = p.pos.add(
+                rl.Vector2.init(0, -20).rotate(p.facing),
+            );
+            rl.drawLine(
+                gameState.toScreenX(p.id),
+                gameState.toScreenY(p.id),
+                toScreenX(facing_point),
+                toScreenY(facing_point),
+                p.color,
+            );
+        }
         //----------------------------------------------------------------------------------
     }
 }
@@ -54,6 +73,18 @@ fn getInputVectorPlayer1() rl.Vector2 {
     if (rl.isKeyDown(rl.KeyboardKey.s)) dir = dir.add(rl.Vector2.init(0.0, 1.0));
     if (rl.isKeyDown(rl.KeyboardKey.a)) dir = dir.add(rl.Vector2.init(-1.0, 0.0));
     if (rl.isKeyDown(rl.KeyboardKey.d)) dir = dir.add(rl.Vector2.init(1.0, 0.0));
+    dir = dir.normalize().scale(scale);
+    return dir;
+}
+
+fn getInputVectorPlayer2() rl.Vector2 {
+    const scale: f32 = 2.0;
+    var dir = rl.Vector2.init(0, 0);
+
+    if (rl.isKeyDown(rl.KeyboardKey.up)) dir = dir.add(rl.Vector2.init(0.0, -1.0));
+    if (rl.isKeyDown(rl.KeyboardKey.down)) dir = dir.add(rl.Vector2.init(0.0, 1.0));
+    if (rl.isKeyDown(rl.KeyboardKey.left)) dir = dir.add(rl.Vector2.init(-1.0, 0.0));
+    if (rl.isKeyDown(rl.KeyboardKey.right)) dir = dir.add(rl.Vector2.init(1.0, 0.0));
     dir = dir.normalize().scale(scale);
     return dir;
 }
@@ -118,3 +149,10 @@ test "do something!" {
 //         return PlayerState{ .id = id, .facing = 0.0, .pos = rl.Vector2.init(0, 0) };
 //     }
 // };
+
+pub fn toScreenX(pos: rl.Vector2) i32 {
+    return @as(i32, @intFromFloat(pos.x));
+}
+pub fn toScreenY(pos: rl.Vector2) i32 {
+    return @as(i32, @intFromFloat(pos.y));
+}
