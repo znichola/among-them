@@ -30,6 +30,7 @@ pub fn main() anyerror!void {
 
         gameState.players[0].pos = gameState.players[0].pos.add(getInputVectorPlayer1());
         gameState.players[1].pos = gameState.players[1].pos.add(getInputVectorPlayer2());
+        gameState.players[0].facing = getMouseAnglePlayer(gameState.players[0].pos);
 
         // Draw (VIEW)
         //----------------------------------------------------------------------------------
@@ -38,6 +39,13 @@ pub fn main() anyerror!void {
 
         rl.clearBackground(rl.Color.white);
         rl.drawFPS(10, 10);
+        rl.drawText(
+            rl.textFormat("angle: %f", .{gameState.players[0].facing}),
+            100,
+            100,
+            16,
+            rl.Color.red,
+        );
 
         const players = gameState.players[0..gameState.player_count];
         for (players) |p| {
@@ -47,11 +55,8 @@ pub fn main() anyerror!void {
                 6,
                 p.color,
             );
-            // const facing_point = p.pos.add(
-            //     rl.Vector2.init(0, 10).rotate(p.facing),
-            // );
             const facing_point = p.pos.add(
-                rl.Vector2.init(0, -20).rotate(p.facing),
+                rl.Vector2.init(20, 0).rotate(p.facing * -1.0),
             );
             rl.drawLine(
                 gameState.toScreenX(p.id),
@@ -87,6 +92,10 @@ fn getInputVectorPlayer2() rl.Vector2 {
     if (rl.isKeyDown(rl.KeyboardKey.right)) dir = dir.add(rl.Vector2.init(1.0, 0.0));
     dir = dir.normalize().scale(scale);
     return dir;
+}
+
+fn getMouseAnglePlayer(pos: rl.Vector2) f32 {
+    return pos.lineAngle(rl.getMousePosition());
 }
 
 test "other files" {
