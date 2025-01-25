@@ -31,13 +31,6 @@ pub const GameState = struct {
         }
         return copy;
     }
-
-    pub fn toScreenX(self: Self, player_id: u4) i32 {
-        return @as(i32, @intFromFloat(self.players[player_id - 1].pos.x));
-    }
-    pub fn toScreenY(self: Self, player_id: u4) i32 {
-        return @as(i32, @intFromFloat(self.players[player_id - 1].pos.y));
-    }
 };
 
 test "initialise and add players" {
