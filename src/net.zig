@@ -12,7 +12,7 @@ pub fn foobar() !void {
     defer std.debug.assert(gpa_alloc.deinit() == .ok);
     const gpa = gpa_alloc.allocator();
 
-    const addr = std.net.Address.initIp4(.{ 127, 0, 0, 1 }, 1337);
+    const addr = std.net.Address.initIp4(.{ 0, 0, 0, 0 }, 1337);
     var server = try addr.listen(.{});
 
     std.log.info("Server listening on port {}", .{addr.getPort()});
@@ -23,24 +23,31 @@ pub fn foobar() !void {
     std.log.info("Sever accepted a connection?", .{});
 
     const client_reader = client.stream.reader();
-    //    const clinet_writer = client.stream.writer();
+    const client_writer = client.stream.writer();
 
     while (true) {
         std.log.info("Top of loop", .{});
-
-        const msg = client_reader.readUntilDelimiterAlloc(
+        const msg = client_reader.readUntilDelimiterOrEofAlloc(
             gpa,
             '\n',
             65536,
         ) catch |err| {
             std.log.err("Read : {}", .{err});
             break;
+        } orelse {
+            std.log.err("Read Eof", .{});
+            break;
         };
-        std.log.info("HERE", .{});
 
         defer gpa.free(msg);
         std.log.info("Recieved message: \"{}\"", .{std.zig.fmtEscapes(msg)});
 
+        if (std.mem.eql(u8, msg, "Hello")) {
+            client_writer.writeAll("Greetings\n") catch |err| {
+                std.log.err("Sending : {}", .{err});
+                break;
+            };
+        }
         // clinet_writer.writeAll(
         //     "HTTP/1.1 200 OK\r\ncontent-length: 7\r\nconnection: keepalive\r\n\r\nHELLO\r\n",
         // ) catch |e| {
