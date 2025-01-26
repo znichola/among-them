@@ -2,8 +2,13 @@ const std = @import("std");
 const rl = @import("raylib");
 const GameState = @import("game.zig").GameState;
 const ut = @import("utils.zig");
+const net = @import("net.zig");
 
 pub fn main() anyerror!void {
+    // Networkig tests
+
+    try net.foobar();
+
     //Game Variables (MODLE)
     //--------------------------------------------------------------------------------------
     var gameState = GameState.init();
